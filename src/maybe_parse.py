@@ -35,6 +35,15 @@ class DubParser:
             lvalue, rhs = self._split_expression(line, assignment_index)
             print(f"lvalue: {lvalue}, rhs: {rhs}, arithmetic_index: {arithmetic_index}")
 
+    def _define_ast(self, lvalue, rhs):
+        """
+        Define the abstract syntax tree (AST) for the Dub programming language.
+        
+        This method will be used to define the structure of the AST that will be used to represent parsed Dub scripts.
+        """
+
+        #TODO: Ok how the fuck do I split this up
+        self.ast[lvalue]
     def _load_file(self, pyscript):
         """
         Load a Dub script from a file and yield its lines.
@@ -89,6 +98,8 @@ class DubParser:
             str: The line of code without trailing whitespace.
         """
 
+        #TODO: I'm not sure about if I like this or not. A mapping would make me feel better. AI did this, and I went with it for now.
+        #TODO: You can do something cleaner.
         while line and line[-1] in " \t\n\r":
             line = line[:-1]
         return line
@@ -118,14 +129,23 @@ class DubParser:
 
         assignment_index = None
         arithmetic_index = [[],[],[],[]]
+        track_index = 0
         for char, index in self._provide_chars(line):
+                if track_index < 0:
+                    raise SyntaxError("Mismatched parentheses in expression.")
                 if char == "=":
                     assignment_index = index
                 if char in self.operator_priority:
                     if char == "(" or char == "^":
                         arithmetic_index[self.operator_priority[char]].insert(0, index)
+                        track_index += 1
+                    if char == ")":
+                        arithmetic_index[self.operator_priority[char]][track_index]= index
+                        track_index -= 1
                     else:
                         arithmetic_index[self.operator_priority[char]].append(index)
+        if track_index != 0:
+            raise SyntaxError("Mismatched parentheses in expression.")
         return assignment_index, arithmetic_index
     
     def _split_expression(self, line, assignment_index):
@@ -138,7 +158,7 @@ class DubParser:
         Returns:
             tuple: A tuple containing the LHS and RHS of the assignment.
         """
-        
+
         if assignment_index is not None:
             lvalue = line[:assignment_index]
             rhs = line[assignment_index + 1:]
@@ -146,4 +166,4 @@ class DubParser:
 
 if __name__ == "__main__":
     dub_parser = DubParser()
-    dub_parser._parse_expression("/home/donald-reilly/Programming/projects/unstable/dub/scripts/test_script.dub")  
+    dub_parser._parse_expression("/home/donald-reilly/Programming/projects/unstable/dub/scripts/test_script.dub")
