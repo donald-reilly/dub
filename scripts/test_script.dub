@@ -1,0 +1,6 @@
+a = 2 + 5    
+b = 3 * 4
+c = a + b - 10
+value1 = 10
+value2 = 20
+result = value1 * value2 + (value1 - value2) / 2
